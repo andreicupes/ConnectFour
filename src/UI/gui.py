@@ -213,6 +213,6 @@ class GUI:
         self.app.mainloop()
 
 
-g = GUI()
-if __name__ == '__main__':
-    g.mainloop()
+# g = GUI()
+# if __name__ == '__main__':
+#     g.mainloop()

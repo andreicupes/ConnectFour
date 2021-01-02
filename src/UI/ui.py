@@ -60,6 +60,6 @@ class UI:
                     return
             human_turn = not human_turn
 
-
-ui = UI()
-ui.start()
+#
+# ui = UI()
+# ui.start()
