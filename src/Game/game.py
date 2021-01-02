@@ -1,17 +1,22 @@
 from Board.board import Board
+from Strategy.strategy import *
+
 
 class Game:
-    def __init__(self, strategy):
+    def __init__(self):
         self._board = Board()
-        self._strategy = strategy
 
     @property
     def board(self):
         return self._board
 
-    def human_move(self, x):
-        # TODO Change so that human can also play with 'O'
-        return self._board.move(x, 'X')
+    def human_move(self, row):
 
-    def computer_move(self):
-        return self._strategy.next_move(self._board)
+        return self._board.move(row, 'X')
+
+    def computer_move(self, difficulty):
+        b = self._board.get_data()
+        s=Strategy()
+        aiMove = s.MiniMaxAlphaBeta(b, difficulty, 'O')
+
+        return self._board.move(aiMove, 'O')

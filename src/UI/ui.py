@@ -4,18 +4,22 @@ from Game.game import *
 
 class UI:
     def __init__(self):
-        self._strategy = RandomMoveStrategy()
-        self._game = Game(self._strategy)
+
+        self._game = Game()
 
     def read_human_move(self):
-        # TODO Add error handling
+
         coord = input('where to play>')
         right=False
 
         while not right:
             if '1'<=coord<='7':
-                row = int(coord)
-                return row
+                if self._game.board.is_free(int(coord)-1):
+                    row = int(coord)
+                    return row - 1
+                else:
+                    print('That column is full!')
+                    coord = input('where to play>')
             else:
                 print('Wrong input!')
                 coord = input('where to play>')
@@ -23,15 +27,20 @@ class UI:
     def start(self):
         finished = False
         human_turn = True
+        difficulty=int(input('Choose the difficulty where 1 is very easy and 5 is very hard:'))
 
         while not finished:
             # Print the board state
-            if self._game.board.checkOWin() is True:
-                print('Computer wins')
+            if self._game.board.checkWin('O') is True:
+                print('Computer wins!\n')
                 print(self._game.board)
                 return
-            elif self._game.board.checkXWin() is True:
-                print('You win')
+            elif self._game.board.checkWin('X') is True:
+                print('You win\n')
+                print(self._game.board)
+                return
+            elif self._game.board.is_full() is True:
+                print('Tie\n')
                 print(self._game.board)
                 return
             else:
@@ -39,13 +48,13 @@ class UI:
 
             if human_turn:
                 coord = self.read_human_move()
-                # print(coord)
+
                 if self._game.human_move(coord) is False:
                     print('You wins!')
 
                     return
             else:
-                if self._game.computer_move() is False:
+                if self._game.computer_move(difficulty) is False:
                     print('All you base are belong to us!')
 
                     return
