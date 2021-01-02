@@ -1,433 +1,218 @@
-import platform
-import matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-import tkinter as tk
-from tkinter import ttk
+# coding=UTF8
+import tkinter
+from tkinter import *
+from tkinter import messagebox
+from tkinter.font import Font
+from copy import deepcopy
+from time import time
+from Board.board import Board
+from Game.game import *
 
 
-matplotlib.use("TkAgg")
-
-large = ("ComicSansMS", 40)
-med = ("ComicSansMS", 30)
-small = ("ComicSansMS", 20)
-
-
-class Connect4App(tk.Tk):
-    """
-    Controller class, will control whole application
-    """
-
+class GUI:
     def __init__(self):
-        # create window that will display all the frames
-        tk.Tk.__init__(self)
-        tk.Tk.wm_title(self, "Connect 4 Game")
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        self.board = Board()
+        self._data = self.board.get_data()
 
-        # dictionary with all frames in the app listed
-        self.frames = {}
+        self.app = Tk()
+        self.app.title('Connect4')
+        self.app.resizable(width=False, height=False)
+        self.app.geometry('667x250')
+        self.difficulty = Entry(self.app, text="Choose a number representing difficulty between 1 and 5").get()
+        self.canvas1 = Canvas(self.app, width=400, height=300, relief='raised')
+        self.canvas1.pack()
+        label1 = Label(self.app, text="Choose difficulty between 1 and 5")
+        label1.config(font=('helvetica', 14))
+        self.canvas1.create_window(200, 25, window=label1)
+        button1 = Button(text='Set difficulty', command=self.getdifficulty, bg='brown', fg='white',
+                            font=('helvetica', 9, 'bold'))
+        self.canvas1.create_window(200, 180, window=button1)
+        self.entry1 = Entry(self.app)
+        self.canvas1.create_window(200, 140, window=self.entry1)
+    def getdifficulty(self):
+        self.difficulty = self.entry1.get()
+        self.difficulty=int(self.difficulty)
+        self.canvas1.destroy()
+        self.start()
+        return self.difficulty
 
-        # creates each page and adds it to container
-        for f in (StartPage, TossPage, BoardPageLose, BoardPageWin):
-            frame = f(container, self)
-            self.frames[f] = frame  # adds pages to dictionary
-            frame.grid(row=0, column=0, sticky="nsew")
-            self.show_frame(StartPage)
+    def start(self):
+        self.button1 = Button(self.app, text="1", fg='red', bg='lightyellow', font=('Arial', 10, 'bold'),
+                              command=self.move1, width=10)
+        self.button2 = Button(self.app, text="2", fg='blue', bg='lightgreen', font=('Arial', 10, 'bold'),
+                              command=self.move2, width=10)
+        self.button3 = Button(self.app, text="3", fg='red', bg='lightyellow', font=('Arial', 10, 'bold'),
+                              command=self.move3, width=10)
+        self.button4 = Button(self.app, text="4", fg='blue', bg='lightgreen', font=('Arial', 10, 'bold'),
+                              command=self.move4, width=10)
+        self.button5 = Button(self.app, text="5", fg='red', bg='lightyellow', font=('Arial', 10, 'bold'),
+                              command=self.move5, width=10)
+        self.button6 = Button(self.app, text="6", fg='blue', bg='lightgreen', font=('Arial', 10, 'bold'),
+                              command=self.move6, width=10)
+        self.button7 = Button(self.app, text="7", fg='red', bg='lightyellow', font=('Arial', 10, 'bold'),
+                              command=self.move7, width=10)
+        self.button1.grid(row=1, column=0)
+        self.button2.grid(row=1, column=1)
+        self.button3.grid(row=1, column=2)
+        self.button4.grid(row=1, column=3)
+        self.button5.grid(row=1, column=4)
+        self.button6.grid(row=1, column=5)
+        self.button7.grid(row=1, column=6)
 
-    # raises necessary page to top to see
-    def show_frame(self, page):
-        frame = self.frames[page]
-        frame.tkraise()
+        self.button8 = Button(self.app, text='RESET', command=self.reset)
+        self.button8.grid(row=11, column=3)
+        for x in range(0, 6):
+            for y in range(0, 7):
+                self.e = Entry(self.app, textvariable=self._data[x][y], width=7, fg='blue',
+                               font=('Arial', 16, 'bold'), justify='center')
+                self.e.grid(row=2 + x, column=y, sticky="W")
+                self.e.insert(END, self._data[x][y])
+        self.update()
 
 
-class StartPage(tk.Frame):
-    """
-    Start Page, contains welcome screen and button to start
-    """
+    def reset(self):
+        if messagebox.askyesno('RESET', 'ARE YOU SURE?'):
+            self._data = [[' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                          [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                          [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+            self.app.destroy()
+            self.__init__()
 
-    def __init__(self, window, controller):
-        ttk.Frame.__init__(self, window)
-        self.grid_columnconfigure(1, weight=1)
+    def aimove(self):
+        b = self.board.get_data()
+        s = Strategy()
+        aiMove = s.MiniMaxAlphaBeta(b, self.difficulty, 'O')
+        self.board.move(aiMove, 'O')
+        if self.board.is_free(0) == False:
+            self.button1['state'] = 'disabled'
+        elif self.board.is_free(1) == False:
+            self.button2['state'] = 'disabled'
+        elif self.board.is_free(2) == False:
+            self.button3['state'] = 'disabled'
+        elif self.board.is_free(3) == False:
+            self.button4['state'] = 'disabled'
+        elif self.board.is_free(4) == False:
+            self.button5['state'] = 'disabled'
+        elif self.board.is_free(5) == False:
+            self.button6['state'] = 'disabled'
+        elif self.board.is_free(6) == False:
+            self.button7['state'] = 'disabled'
+        self.update()
+        self.win('O')
+        self.tie()
 
-        title = ttk.Label(self, text="Welcome to Connect 4!", font=large)
-        title.grid(row=1, column=1)
+    def move1(self):
 
-        button_continue = ttk.Button(self, text="Begin", command=lambda:
-        controller.show_frame(TossPage))
-        button_continue.grid(row=2, column=1)
+        self.board.move(0, 'X')
+        self.update()
+        if self.board.is_free(0) == False:
+            self.button1['state'] = 'disabled'
 
+        if self.win('X') is False:
+            self.aimove()
+        self.tie()
 
-class BoardPageLose(tk.Frame):
-    """
-    Board Page, contains main game
-    If player lost toss
-    """
+    def move2(self):
+        self.board.move(1, 'X')
+        self.update()
+        if self.board.is_free(1) == False:
+            self.button2['state'] = 'disabled'
+        if self.win('X') is False:
+            self.aimove()
+        self.tie()
 
-    def __init__(self, window, controller):
+    def move3(self):
+        self.board.move(2, 'X')
+        self.update()
+        if self.board.is_free(2) == False:
+            self.button3['state'] = 'disabled'
+        if self.win('X') is False:
+            self.aimove()
+        self.tie()
 
-        ttk.Frame.__init__(self, window)
+    def move4(self):
+        self.board.move(3, 'X')
+        self.update()
+        if self.board.is_free(3) == False:
+            self.button4['state'] = 'disabled'
+        if self.win('X') is False:
+            self.aimove()
+        self.tie()
 
-        title = ttk.Label(
-            self, text="Connect 4 Game", font=large)
-        title.grid(row=1, column=1)
-        board = c4.makearrayboard()
-        computercolumn = c4.decidecomputermove(board)
-        while c4.checkifvalid(board, computercolumn) != True:
-            computercolumn = c4.decidecomputermove(board)
-        c4.docomputermove(board, computercolumn)
-        graph = c4.plotgraphicalboard(board)
-        canvas = FigureCanvasTkAgg(graph, self)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=2, column=1)
+    def move5(self):
+        self.board.move(4, 'X')
+        self.update()
+        if self.board.is_free(4) == False:
+            self.button5['state'] = 'disabled'
+        if self.win('X') is False:
+            self.aimove()
+        self.tie()
 
-        separator = ttk.Label(self, text=" ", font=small)
-        separator.grid(row=3, column=1)
-        statement = ttk.Label(self, text="Choose a column", font=med)
-        statement.grid(row=4, column=1)
+    def move6(self):
+        self.board.move(5, 'X')
+        self.update()
+        if self.board.is_free(5) == False:
+            self.button6['state'] = 'disabled'
+        if self.win('X') is False:
+            self.aimove()
+        self.tie()
 
-        button_a = ttk.Button(self, text="a", command=lambda:
-        self.choose_a(board, buttons, statement), width=1)
-        button_b = ttk.Button(self, text="b", command=lambda:
-        self.choose_b(board, buttons, statement), width=1)
-        button_c = ttk.Button(self, text="c", command=lambda:
-        self.choose_c(board, buttons, statement), width=1)
-        button_d = ttk.Button(self, text="d", command=lambda:
-        self.choose_d(board, buttons, statement), width=1)
-        button_e = ttk.Button(self, text="e", command=lambda:
-        self.choose_e(board, buttons, statement), width=1)
-        button_f = ttk.Button(self, text="f", command=lambda:
-        self.choose_f(board, buttons, statement), width=1)
-        button_g = ttk.Button(self, text="g", command=lambda:
-        self.choose_g(board, buttons, statement), width=1)
+    def move7(self):
+        self.board.move(6, 'X')
+        self.update()
+        if self.board.is_free(6) == False:
+            self.button7['state'] = 'disabled'
+        if self.win('X') is False:
+            self.aimove()
+        self.tie()
 
-        if platform.system() == "Windows":
-            button_a.place(x=68, y=410)
-            button_b.place(x=111, y=410)
-            button_c.place(x=154, y=410)
-            button_d.place(x=197, y=410)
-            button_e.place(x=240, y=410)
-            button_f.place(x=283, y=410)
-            button_g.place(x=327, y=410)
+    def win(self, symbol):
+        if self.board.checkWin(symbol) is True:
+            self.button1['state'] = 'disabled'
+            self.button2['state'] = 'disabled'
+            self.button3['state'] = 'disabled'
+            self.button4['state'] = 'disabled'
+            self.button5['state'] = 'disabled'
+            self.button6['state'] = 'disabled'
+            self.button7['state'] = 'disabled'
+            if symbol == 'O':
+                messagebox.showinfo(str('WINNER'), str('THE COMPUTER WON!!!!!'))
+            else:
+                messagebox.showinfo(str('WINNER'), str('YOU WON!!!!!'))
+            return True
         else:
-            button_a.place(x=25, y=410)
-            button_b.place(x=68, y=410)
-            button_c.place(x=111, y=410)
-            button_d.place(x=154, y=410)
-            button_e.place(x=197, y=410)
-            button_f.place(x=240, y=410)
-            button_g.place(x=283, y=410)
+            return False
 
-        buttons = [button_a, button_b, button_c,
-                   button_d, button_e, button_f, button_g]
+    def tie(self):
+        if self.board.is_full() == True:
+            self.button1['state'] = 'disabled'
+            self.button2['state'] = 'disabled'
+            self.button3['state'] = 'disabled'
+            self.button4['state'] = 'disabled'
+            self.button5['state'] = 'disabled'
+            self.button6['state'] = 'disabled'
+            self.button7['state'] = 'disabled'
+            messagebox.showinfo(str('NO WINNER'), str('TIE!!!!!'))
 
-    def choose_a(self, board, buttons, statement):
-        usercolumn = 0
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 0)
-            self.continuegame(board, buttons, statement)
+    def update(self):
 
-    def choose_b(self, board, buttons, statement):
-        usercolumn = 1
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 1)
-            self.continuegame(board, buttons, statement)
+        for x in range(0, 6):
+            for y in range(0, 7):
+                if self._data[x][y] == 'X':
+                    color = 'blue'
+                else:
+                    color = 'red'
+                self.e = Entry(self.app, textvariable=self._data[x][y], width=7, fg=color,
+                               font=('Arial', 18, 'bold'), justify='center')
 
-    def choose_c(self, board, buttons, statement):
-        usercolumn = 2
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 2)
-            self.continuegame(board, buttons, statement)
+                self.e.grid(row=2 + x, column=y, sticky="W")
+                self.e.delete(0, END)
+                self.e.insert(0, self._data[x][y])
 
-    def choose_d(self, board, buttons, statement):
-        usercolumn = 3
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 3)
-            self.continuegame(board, buttons, statement)
-
-    def choose_e(self, board, buttons, statement):
-        usercolumn = 4
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 4)
-            self.continuegame(board, buttons, statement)
-
-    def choose_f(self, board, buttons, statement):
-        usercolumn = 5
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 5)
-            self.continuegame(board, buttons, statement)
-
-    def choose_g(self, board, buttons, statement):
-        usercolumn = 6
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 6)
-            self.continuegame(board, buttons, statement)
-
-    def continuegame(self, board, buttons, statement):
-        """
-        Main game function. Checks the gamestate to see if game is over
-        If game is not over, makes the computer move and checks again
-        If game is still not over, allows player to make another move
-        If game is over, displays the appropriate labels
-        Makes all buttons useless game is over
-        """
-        gamestate = c4.checkgamestate(board)
-
-        if gamestate == 0:
-            computercolumn = c4.decidecomputermove(board)
-            while c4.checkifvalid(board, computercolumn) != True:
-                computercolumn = c4.decidecomputermove(board)
-            c4.docomputermove(board, computercolumn)
-            gamestate = c4.checkgamestate(board)
-            graph = c4.plotgraphicalboard(board)
-            canvas = FigureCanvasTkAgg(graph, self)
-            canvas.draw()
-            canvas.get_tk_widget().grid(row=2, column=1)
-
-        if gamestate == 1:
-            graph = c4.plotgraphicalboard(board)
-            canvas = FigureCanvasTkAgg(graph, self)
-            canvas.draw()
-            canvas.get_tk_widget().grid(row=2, column=1)
-            buttons[0].configure(command=donothing)
-            buttons[1].configure(command=donothing)
-            buttons[2].configure(command=donothing)
-            buttons[3].configure(command=donothing)
-            buttons[4].configure(command=donothing)
-            buttons[5].configure(command=donothing)
-            buttons[6].configure(command=donothing)
-            buttons[0].update()
-            buttons[1].update()
-            buttons[2].update()
-            buttons[3].update()
-            buttons[4].update()
-            buttons[5].update()
-            buttons[6].update()
-            statement.configure(text="You Won!")
-            statement.update()
-            print("You win")
-
-        if gamestate == 2:
-            buttons[0].configure(command=donothing)
-            buttons[1].configure(command=donothing)
-            buttons[2].configure(command=donothing)
-            buttons[3].configure(command=donothing)
-            buttons[4].configure(command=donothing)
-            buttons[5].configure(command=donothing)
-            buttons[6].configure(command=donothing)
-            buttons[0].update()
-            buttons[1].update()
-            buttons[2].update()
-            buttons[3].update()
-            buttons[4].update()
-            buttons[5].update()
-            buttons[6].update()
-            statement.configure(text="You Lost!")
-            statement.update()
-            print("You lose")
-
-        if gamestate == 3:
-            graph = c4.plotgraphicalboard(board)
-            canvas = FigureCanvasTkAgg(graph, self)
-            canvas.draw()
-            canvas.get_tk_widget().grid(row=2, column=1)
-            statement.configure(text="It's a draw!")
-            statement.update()
-            print("You draw")
+    def mainloop(self):
+        self.app.mainloop()
 
 
-class BoardPageWin(tk.Frame):
-    """
-    Board Page, contains main game
-    If player won toss
-    """
-
-    def __init__(self, window, controller):
-
-        ttk.Frame.__init__(self, window)
-
-        title = ttk.Label(self, text="Connect 4 Game", font=large)
-        title.grid(row=1, column=1)
-        board = c4.makearrayboard()
-        graph = c4.plotgraphicalboard(board)
-
-        canvas = FigureCanvasTkAgg(graph, self)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=2, column=1)
-
-        separator = ttk.Label(self, text=" ", font=small)
-        separator.grid(row=3, column=1)
-        statement = ttk.Label(self, text="Choose a column", font=med)
-        statement.grid(row=4, column=1)
-
-        button_a = ttk.Button(self, text="a", command=lambda:
-        self.choose_a(board, buttons, statement), width=1)
-        button_b = ttk.Button(self, text="b", command=lambda:
-        self.choose_b(board, buttons, statement), width=1)
-        button_c = ttk.Button(self, text="c", command=lambda:
-        self.choose_c(board, buttons, statement), width=1)
-        button_d = ttk.Button(self, text="d", command=lambda:
-        self.choose_d(board, buttons, statement), width=1)
-        button_e = ttk.Button(self, text="e", command=lambda:
-        self.choose_e(board, buttons, statement), width=1)
-        button_f = ttk.Button(self, text="f", command=lambda:
-        self.choose_f(board, buttons, statement), width=1)
-        button_g = ttk.Button(self, text="g", command=lambda:
-        self.choose_g(board, buttons, statement), width=1)
-
-        if platform.system() == "Windows":
-            button_a.place(x=68, y=410)
-            button_b.place(x=111, y=410)
-            button_c.place(x=154, y=410)
-            button_d.place(x=197, y=410)
-            button_e.place(x=240, y=410)
-            button_f.place(x=283, y=410)
-            button_g.place(x=327, y=410)
-        else:
-            button_a.place(x=25, y=410)
-            button_b.place(x=68, y=410)
-            button_c.place(x=111, y=410)
-            button_d.place(x=154, y=410)
-            button_e.place(x=197, y=410)
-            button_f.place(x=240, y=410)
-            button_g.place(x=283, y=410)
-
-        buttons = [button_a, button_b, button_c,
-                   button_d, button_e, button_f, button_g]
-
-    def choose_a(self, board, buttons, statement):
-        usercolumn = 0
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 0)
-            self.continuegame(board, buttons, statement)
-
-    def choose_b(self, board, buttons, statement):
-        usercolumn = 1
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 1)
-            self.continuegame(board, buttons, statement)
-
-    def choose_c(self, board, buttons, statement):
-        usercolumn = 2
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 2)
-            self.continuegame(board, buttons, statement)
-
-    def choose_d(self, board, buttons, statement):
-        usercolumn = 3
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 3)
-            self.continuegame(board, buttons, statement)
-
-    def choose_e(self, board, buttons, statement):
-        usercolumn = 4
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 4)
-            self.continuegame(board, buttons, statement)
-
-    def choose_f(self, board, buttons, statement):
-        usercolumn = 5
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 5)
-            self.continuegame(board, buttons, statement)
-
-    def choose_g(self, board, buttons, statement):
-        usercolumn = 6
-        if c4.checkifvalid(board, usercolumn) == True:
-            c4.dousermove(board, 6)
-            self.continuegame(board, buttons, statement)
-
-    def continuegame(self, board, buttons, statement):
-        """
-        Main game function. Checks the gamestate to see if game is over
-        If game is not over, makes the computer move and checks again
-        If game is still not over, allows player to make another move
-        If game is over, displays the appropriate labels
-        Makes all buttons useless game is over
-        """
-
-        gamestate = c4.checkgamestate(board)
-
-        if gamestate == 0:
-            computercolumn = c4.decidecomputermove(board)
-            while c4.checkifvalid(board, computercolumn) != True:
-                computercolumn = c4.decidecomputermove(board)
-            c4.docomputermove(board, computercolumn)
-            gamestate = c4.checkgamestate(board)
-            graph = c4.plotgraphicalboard(board)
-            canvas = FigureCanvasTkAgg(graph, self)
-            canvas.draw()
-            canvas.get_tk_widget().grid(row=2, column=1)
-
-        if gamestate == 1:
-            graph = c4.plotgraphicalboard(board)
-            canvas = FigureCanvasTkAgg(graph, self)
-            canvas.draw()
-            canvas.get_tk_widget().grid(row=2, column=1)
-            buttons[0].configure(command=donothing)
-            buttons[1].configure(command=donothing)
-            buttons[2].configure(command=donothing)
-            buttons[3].configure(command=donothing)
-            buttons[4].configure(command=donothing)
-            buttons[5].configure(command=donothing)
-            buttons[6].configure(command=donothing)
-            buttons[0].update()
-            buttons[1].update()
-            buttons[2].update()
-            buttons[3].update()
-            buttons[4].update()
-            buttons[5].update()
-            buttons[6].update()
-            statement.configure(text="You Won!")
-            statement.update()
-            print("You win")
-
-        if gamestate == 2:
-            buttons[0].configure(command=donothing)
-            buttons[1].configure(command=donothing)
-            buttons[2].configure(command=donothing)
-            buttons[3].configure(command=donothing)
-            buttons[4].configure(command=donothing)
-            buttons[5].configure(command=donothing)
-            buttons[6].configure(command=donothing)
-            buttons[0].update()
-            buttons[1].update()
-            buttons[2].update()
-            buttons[3].update()
-            buttons[4].update()
-            buttons[5].update()
-            buttons[6].update()
-            statement.configure(text="You Lost!")
-            statement.update()
-            print("You lose")
-
-        if gamestate == 3:
-            graph = c4.plotgraphicalboard(board)
-            canvas = FigureCanvasTkAgg(graph, self)
-            canvas.draw()
-            canvas.get_tk_widget().grid(row=2, column=1)
-            statement.configure(text="It's a draw!")
-            statement.update()
-            print("You draw")
-
-
-def donothing():
-    """
-    Function that does nothing.
-    Makes a button useless if assigned to it
-    """
-    pass
-
-
-# Stops program crashing on mac due to UnicodeDecodeError
-def runapp(app):
-    try:
-        app.mainloop()
-    except UnicodeDecodeError:
-        runapp(app)
-
-
-app = Connect4App()
-runapp(app)
+g = GUI()
+if __name__ == '__main__':
+    g.mainloop()
