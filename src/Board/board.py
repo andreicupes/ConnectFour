@@ -4,10 +4,9 @@ import random
 
 class Board:
     def __init__(self):
-        # TODO Have a variable number of rows and columns
+
         self._rows = 6
         self._columns = 7
-
         # Empty squares marked with None
         self._data = [[' ' for j in range(self._columns)] for i in range(self._rows)]
 
@@ -25,7 +24,6 @@ class Board:
     def get(self, x, y):
         """
         Return symbol at position [x,y] on board
-
             ' '     -> empty square
             'X', 'O' -> symbols
 
@@ -33,13 +31,24 @@ class Board:
         return self._data[x][y]
 
     def is_free(self, x):
+        """
+        Check if there is any place left in that column
+        :param x:
+        :return:
+        """
         return self.get(0,x) == ' '
 
     def move(self, x, symbol):
+        """
+        Function used to make a move
+        :param x:
+        :param symbol:
+        :return:
+        """
         if self._data[0][int(x)] != ' ':
-            print('board is full')
+            return
         ok = 0
-        # Mark the rest of the choco square to the right and below
+
         for row in range(self._rows - 1):
             if self._data[row + 1][int(x)] != ' ':
                 self._data[row][int(x)] = symbol
@@ -51,6 +60,10 @@ class Board:
         # Mark the new move on the board
 
     def __str__(self):
+        """
+        Function to display the board nicely
+        :return:
+        """
         t = Texttable()
         t.header(['1', '2', '3', '4', '5', '6', '7'])
         for row in range(6):
@@ -67,6 +80,11 @@ class Board:
         return t.draw()
 
     def checkWin(self,symbol):
+        """
+        Function used to check all over the board to see if a given symbol has 4 in a row
+        :param symbol:
+        :return:
+        """
         board = self._data
         boardHeight = len(board[0])
         boardWidth = len(board)
@@ -101,6 +119,10 @@ class Board:
         return False
 
     def is_full(self):
+        """
+        Check if the board is full
+        :return:
+        """
         for i in range(1,7):
             if self._data[0][i]==' ':
                 return False

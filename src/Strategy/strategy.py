@@ -2,12 +2,6 @@ from copy import *
 from random import shuffle
 
 
-# BOARD_WIDTH = 7
-# BOARD_HEIGHT = 6
-# AI_PLAYER = 'O'
-# HUMAN_PLAYER = 'X'
-
-
 class Strategy:
     def __init__(self):
         self.BOARD_WIDTH = 7
@@ -16,6 +10,17 @@ class Strategy:
         self.HUMAN_PLAYER = 'X'
 
     def MiniMaxAlphaBeta(self, board, depth, player):
+        """
+        A minimax algorithm[5] is a recursive algorithm for choosing the next move in an n-player game,
+        usually a two-player game.A value is associated with each position or state of the game. This value is computed
+        by means of a position evaluation function and it indicates how good it would be for a player to reach that
+        position. The player then makes the move that maximizes the minimum value of the position resulting from the
+        opponent's possible following moves. If it is A's turn to move, A gives a value to each of their legal moves.
+        :param board:
+        :param depth:
+        :param player:
+        :return:
+        """
         # get array of possible moves
         validMoves = self.getValidMoves(board)
         shuffle(validMoves)
@@ -43,6 +48,18 @@ class Strategy:
         return bestMove
 
     def minimizeBeta(self, board, depth, a, b, player, opponent):
+        """
+        The algorithm continues evaluating the maximum and minimum values of the child nodes alternately until it
+        reaches the root node, where it chooses the move with the largest value (represented in the figure with a
+        blue arrow). This is the move that the player should make in order to minimize the maximum possible loss.
+        :param board:
+        :param depth:
+        :param a:
+        :param b:
+        :param player:
+        :param opponent:
+        :return:
+        """
         validMoves = []
         for col in range(7):
             # if column col is a legal move...
@@ -71,6 +88,18 @@ class Strategy:
         return beta
 
     def maximizeAlpha(self, board, depth, a, b, player, opponent):
+        """
+        The algorithm continues evaluating the maximum and minimum values of the child nodes alternately until it
+        reaches the root node, where it chooses the move with the largest value (represented in the figure with a
+        blue arrow). This is the move that the player should make in order to minimize the maximum possible loss.
+        :param board:
+        :param depth:
+        :param a:
+        :param b:
+        :param player:
+        :param opponent:
+        :return:
+        """
         validMoves = []
         for col in range(7):
             # if column col is a legal move...
@@ -95,18 +124,35 @@ class Strategy:
         return alpha
 
     def isColumnValid(self, Board, Col):
+        """
+        check if column still has place
+        :param Board:
+        :param Col:
+        :return:
+        """
         if Board[0][Col] == ' ':
             return True
         return False
 
     # check the search range for rows and columns
     def isRangeValid(self, row, col):
+        """
+        check the search range for rows and columns
+        :param row:
+        :param col:
+        :return:
+        """
         if row >= 0 and col >= 0 and row < self.BOARD_HEIGHT and col < self.BOARD_WIDTH:
             return True
         return False
 
     # return all valid moves (empty columns) from the board
     def getValidMoves(self, Board):
+        """
+        return all valid moves (empty columns) from the board
+        :param Board:
+        :return:
+        """
         Columns = []
         for Col in range(self.BOARD_WIDTH):
             if self.isColumnValid(Board, Col):
@@ -115,7 +161,14 @@ class Strategy:
 
     # places the current move's player ['x'|'o'] in the referenced column in the board
     def makeMove(self, board, col, player):
-        # deepcopy is used to take acopy of current board and not affecting the original one
+        """
+        places the current move's player ['x'|'o'] in the referenced column in the board
+        :param board:
+        :param col:
+        :param player:
+        :return:
+        """
+        # deepcopy is used to take a copy of current board and not affecting the original one
         tempBoard = deepcopy(board)
         for row in range(5, -1, -1):
             if tempBoard[row][col] == ' ':
@@ -124,6 +177,12 @@ class Strategy:
 
     # check if the played move is in empty column or not
     def isValidMove(self, col, board):
+        """
+        Check if the played move is in empty column or not
+        :param col:
+        :param board:
+        :return:
+        """
         for row in range(self.BOARD_HEIGHT):
             if board[row][col] == ' ':
                 return True
@@ -131,16 +190,32 @@ class Strategy:
 
     # check if the board is filled with players' moves
     def isBoardFilled(self, board):
-        # Check the first row and Selected colmun if it filled or not
+        """
+        check if the board is filled with players' moves
+        :param board:
+        :return:
+        """
+        # Check the first row and Selected column if it filled or not
         for row in range(self.BOARD_HEIGHT):
             for col in range(self.BOARD_WIDTH):
                 if board[row][col] == ' ': return False
         return True
 
-    # find four or more of ('x'|'o') in arow in any direction
+    # find four or more of ('x'|'o') in arrow in any direction
     def findFours(self, board):
-        # find four or more of ('x'|'o') in arow in vertical direction
+        """
+        find four or more of ('x'|'o') in arrow in any direction
+        :param board:
+        :return:
+        """
+        # find four or more of ('x'|'o') in arrow in vertical direction
         def verticalCheck(row, col):
+            """
+            find four or more of ('x'|'o') in arrow in vertical direction
+            :param row:
+            :param col:
+            :return:
+            """
             fourInARow = False
             count = 0
             for rowIndex in range(row, self.BOARD_HEIGHT):
@@ -154,8 +229,14 @@ class Strategy:
 
             return fourInARow, count
 
-        # find four or more of ('x'|'o') in arow in horizontal direction
+        # find four or more of ('x'|'o') in arrow in horizontal direction
         def horizontalCheck(row, col):
+            """
+            find four or more of ('x'|'o') in arrow in horizontal direction
+            :param row:
+            :param col:
+            :return:
+            """
             fourInARow = False
             count = 0
             for colIndex in range(col, self.BOARD_WIDTH):
@@ -169,8 +250,14 @@ class Strategy:
 
             return fourInARow, count
 
-        # find four or more of ('x'|'o') in arow in postive diagonal direction
+        # find four or more of ('x'|'o') in arrow in positive diagonal direction
         def posDiagonalCheck(row, col):
+            """
+            find four or more of ('x'|'o') in arrow in positive diagonal direction /
+            :param row:
+            :param col:
+            :return:
+            """
             # check for diagonals with positive slope
             slope = None
             count = 0
@@ -189,8 +276,14 @@ class Strategy:
 
             return slope, count
 
-        # find four or more of ('x'|'o') in arow in negative diagonal direction
+        # find four or more of ('x'|'o') in arrow in negative diagonal direction \
         def negDiagonalCheck(row, col):
+            """
+            find four or more of ('x'|'o') in arrow in negative diagonal direction \
+            :param row:
+            :param col:
+            :return:
+            """
             # check for diagonals with positive slope
             slope = None
             count = 0
@@ -209,8 +302,14 @@ class Strategy:
 
             return slope, count
 
-        # find four or more of ('x'|'o') in arow in any diagonal direction
+        # find four or more of ('x'|'o') in arrow in any diagonal direction
         def diagonalCheck(row, col):
+            """
+            find four or more of ('x'|'o') in arrow in any diagonal direction
+            :param row:
+            :param col:
+            :return:
+            """
             positiveSlop, positiveCount = posDiagonalCheck(row, col)
             negativeSlop, negativeCount = negDiagonalCheck(row, col)
 
@@ -231,6 +330,13 @@ class Strategy:
 
         # make the winning moves in uppercase
         def capitalizeFourInARow(row, col, dir):
+            """
+            make the winning moves in uppercase
+            :param row:
+            :param col:
+            :param dir:
+            :return:
+            """
             if dir == 'vertical':
                 for rowIndex in range(verticalCount):
                     board[row + rowIndex][col] = board[row + rowIndex][col].upper()
@@ -282,6 +388,11 @@ class Strategy:
 
     # gets number of the empty valid locations in the board
     def getEmptyLocations(self, board):
+        """
+        Gets number of the empty valid locations in the board
+        :param board:
+        :return:
+        """
         emptyLocations = 0
         for row in range(self.BOARD_HEIGHT):
             for col in range(self.BOARD_WIDTH):
@@ -291,7 +402,7 @@ class Strategy:
 
     def countSequence(self, board, player, length):
         """ Given the board state , the current player and the length of Sequence you want to count
-            Return the count of Sequences that have the give length
+            Return the count of Sequences that have the given length
         """
 
         def verticalSeq(row, col):
@@ -374,9 +485,9 @@ class Strategy:
         return totalCount
 
     def utilityValue(self, board, player):
-        """ A utility fucntion to evaluate the state of the board and report it to the calling function,
-            utility value is defined as the  score of the player who calles the function - score of opponent player,
-            The score of any player is the sum of each sequence found for this player scalled by large factor for
+        """ A utility function to evaluate the state of the board and report it to the calling function,
+            utility value is defined as the  score of the player who calls the function - score of opponent player,
+            The score of any player is the sum of each sequence found for this player scaled by large factor for
             sequences with higher lengths.
         """
         if player == self.HUMAN_PLAYER:

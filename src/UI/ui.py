@@ -50,12 +50,12 @@ class UI:
                 coord = self.read_human_move()
 
                 if self._game.human_move(coord) is False:
-                    print('You wins!')
+
 
                     return
             else:
                 if self._game.computer_move(difficulty) is False:
-                    print('All you base are belong to us!')
+
 
                     return
             human_turn = not human_turn
